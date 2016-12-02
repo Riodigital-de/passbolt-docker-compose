@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+
+  app1:
+    ports:
+      - 8080:8081
+      - 80
+    volumes:
+      - ./data/app1/:/foo/bar/:z
+
+  app2:
+    build:
+      args:
+        - BAR=false
+        - NEWARG=NEW
+
+  proxy:
+    environment:
+      - VIRTUAL_HOST=template.rio-test.net
+

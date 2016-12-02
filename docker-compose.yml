@@ -1,0 +1,44 @@
+version: '2'
+
+services:
+
+  app1:
+    image: tutum/hello-world
+    ports:
+      - 8080
+      - 80
+    volumes:
+      - /some/internal/path
+      - ./data/app1/:/foo/bar/:z
+
+  app2:
+    build:
+      context: ./build/app2
+      dockerfile: ${app2_dockerfile}
+      args:
+        - FOO=${foo}
+        - BAR=${bar}
+    ports:
+      - 8090
+      - 80
+    volumes:
+      - ./data/app2/:/foo/bar/:z
+
+  proxy:
+    image: nginx:stable-alpine
+    ports:
+      - 80
+    volumes:
+      - ./config/app1/app1.conf:/etc/nginx/conf.d/default.conf
+    environment:
+      - VIRTUAL_HOST=${virtual_hosts}
+      - VIRTUAL_PORT=${virtual_ports}
+    networks:
+      - default
+      - ambassador
+
+networks:
+  default:
+  ambassador:
+    external:
+      name: ambassador
