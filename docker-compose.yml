@@ -2,37 +2,52 @@ version: '2'
 
 services:
 
-  app1:
-    image: tutum/hello-world
-    ports:
-      - 8080
-      - 80
-    volumes:
-      - /some/internal/path
-      - ./data/app1/:/foo/bar/:z
-
-  app2:
+  app:
     build:
-      context: ./build/app2
-      dockerfile: ${app2_dockerfile}
+      context: ./build/app
+      dockerfile: ${app_dockerfile}
       args:
-        - FOO=${foo}
-        - BAR=${bar}
+        - LOG_ERROR=${log_error}
+        - LOG_ACCESS=${log_access}
+        - MEMORY_LIMIT=${memory_limit}
+        - POST_MAXSIZE=${post_maxsize}
+        - UPLOAD_MAX_FILESIZE=${upload_max_filesize}
+        - DATE_TIMEZONE=${date_timezone}
     ports:
-      - 8090
-      - 80
+      - 9000
     volumes:
-      - ./data/app2/:/foo/bar/:z
+      - ./data/passbolt/:/var/www/passbolt
+    environment:
+      - ADMIN_USERNAME=${admin_username}
+      - ADMIN_FIRSTNAME=${admin_firstname}
+      - ADMIN_LASTNAME=${admin_lastname}
+      - MYSQL_HOST=db
+      - MYSQL_DATABASE=${mysql_database}
+      - MYSQL_USER=${mysql_user}
+      - MYSQL_PASSWORD=${mysql_password}
+      - HOST_NAME=${virtual_hosts}
+
+  db:
+    image: mysql:5.7.16
+    volumes:
+      - /var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${mysql_root_password}
+      - MYSQL_DATABASE=${mysql_database}
+      - MYSQL_USER=${mysql_user}
+      - MYSQL_PASSWORD=${mysql_password}
+    command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci]
 
   proxy:
     image: nginx:stable-alpine
     ports:
       - 80
+    volumes_from:
+      - app
     volumes:
-      - ./config/app1/app1.conf:/etc/nginx/conf.d/default.conf
+      - ./config/app/app.conf:/etc/nginx/nginx/nginx.conf
     environment:
       - VIRTUAL_HOST=${virtual_hosts}
-      - VIRTUAL_PORT=${virtual_ports}
     networks:
       - default
       - ambassador

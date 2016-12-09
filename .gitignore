@@ -105,5 +105,3 @@ fabric.properties
 
 .idea/
 jenkins.iml
-
-.env

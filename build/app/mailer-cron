@@ -1,0 +1,1 @@
+* * * * * /var/www/passbolt/app/Console/cake EmailQueue.sender > /var/log/passbolt.log
