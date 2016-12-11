@@ -1,4 +1,4 @@
-FROM phusion/baseimage
+FROM alpine:3.4
 
 ARG LOG_ERROR
 ARG LOG_ACCESS
@@ -6,6 +6,22 @@ ARG MEMORY_LIMIT
 ARG POST_MAXSIZE
 ARG UPLOAD_MAX_FILESIZE
 ARG DATE_TIMEZONE
+
+RUN apk update
+RUN apk add php5 php5-common php5-fpm php5-gd php5-pdo php5-pdo_mysql php5-mysql php5-mysqli php5-intl php5-json php5-xsl php5-ctype
+# filter hash session in common
+
+RUN apk add php5-pear
+
+# gpg
+RUN apk add gpgme-dev
+RUN pecl install gnupg
+
+
+RUN apk update
+RUN apk add ca-certificates curl wget libpcrecpp sqlite-lib libxml2 recode-dev
+RUN apk add git npm
+RUN php5 php5-common php5-json php5-gd php5-mcrypt php5-ctype php5-curl php5-mysql php5-xsl php5-intl php5-iconv
 
 RUN LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php
 

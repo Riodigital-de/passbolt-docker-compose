@@ -15,17 +15,20 @@ services:
         - DATE_TIMEZONE=${date_timezone}
     ports:
       - 9000
+      - 8081
     volumes:
       - ./data/passbolt/:/var/www/passbolt
+    depends_on:
+      - db
     environment:
       - ADMIN_USERNAME=${admin_username}
       - ADMIN_FIRSTNAME=${admin_firstname}
       - ADMIN_LASTNAME=${admin_lastname}
       - MYSQL_HOST=db
       - MYSQL_DATABASE=${mysql_database}
-      - MYSQL_USER=${mysql_user}
+      - MYSQL_USERNAME=${mysql_user}
       - MYSQL_PASSWORD=${mysql_password}
-      - HOST_NAME=${virtual_hosts}
+      - HOST_NAME=192.168.178.65
 
   db:
     image: mysql:5.7.16
@@ -39,13 +42,15 @@ services:
     command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci]
 
   proxy:
-    image: nginx:stable-alpine
+    build: ./build/proxy
     ports:
-      - 80
+      - 80:80
+    depends_on:
+      - app
     volumes_from:
       - app
     volumes:
-      - ./config/app/app.conf:/etc/nginx/nginx/nginx.conf
+      - ./config/app/app.conf:/etc/nginx/nginx.conf
     environment:
       - VIRTUAL_HOST=${virtual_hosts}
     networks:

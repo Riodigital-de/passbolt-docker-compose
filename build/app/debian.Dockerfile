@@ -1,4 +1,4 @@
-FROM phusion/baseimage
+FROM debian
 
 ARG LOG_ERROR
 ARG LOG_ACCESS
@@ -7,21 +7,22 @@ ARG POST_MAXSIZE
 ARG UPLOAD_MAX_FILESIZE
 ARG DATE_TIMEZONE
 
-RUN LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends\
+    apt-get install -y --no-install-recommends \
     # persistent &runtime deps. \
     ca-certificates curl wget libpcre3 librecode0 libsqlite3-0 libxml2 \
     # versioning & package manager tools \
     git npm \
-    # php
-    php5.6 php5.6-common php5.6-json php5.6-fpm php5.6-cli php5.6-curl php5.6-gd php5.6-mcrypt php5.6-mysql php5.6-xsl php5.6-intl \
+    # php \
+    php5-json php5-cli php5-fpm php5-common \
+    php5-curl php5-gd php5-mcrypt \
+    php5-mysql php5-xsl php5-intl \
+
     # gpg
-    #php-gnupg libgpgme11-dev\
     libgpgme11-dev\
     # cache
-    php-memcached memcached\
+    php5-memcached memcached\
     # pear
     php-pear \
     # supervisor
@@ -40,35 +41,42 @@ RUN ln -s /usr/bin/nodejs /usr/bin/node \
     # install grunt
     && npm install -g grunt-cli
 
+RUN apt-get install -y --no-install-recommends \
+     # phpize dependencies \
+    autoconf file g++ gcc libc-dev make pkg-config re2c php5-dev
+
 RUN pecl install gnupg \
     && echo "extension=gnupg.so;" > /etc/php5/mods-available/gnupg.ini \
-    && ln -s /etc/php5/mods-available/gnupg.ini /etc/php5/apache2/conf.d/20-gnupg.ini \
+    && ln -s /etc/php5/mods-available/gnupg.ini /etc/php5/fpm/conf.d/20-gnupg.ini \
     && ln -s /etc/php5/mods-available/gnupg.ini /etc/php5/cli/conf.d/20-gnupg.ini \
     # configure the user www-data env to work with gnupg \
     && mkdir /home/www-data/.gnupg \
     && chown www-data:www-data /home/www-data/.gnupg \
     && chmod 0777 /home/www-data/.gnupg
 
+RUN apt-get remove -y \
+    autoconf file g++ gcc libc-dev make pkg-config re2c php5-dev
+
 ## php config
-# config php5.6-fpm to use port 9000 instead of a unix socket
-RUN sed -i "/listen =/c\listen = \[\:\:\]\:9000" /etc/php/5.6/fpm/pool.d/www.conf
+# config php5-fpm to use port 9000 instead of a unix socket
+RUN sed -i "/listen =/c\listen = \[\:\:\]\:9000" /etc/php5/fpm/pool.d/www.conf
 
 # reroute php access and error log for display in docker log
 # we dont configure this for cli, since whoever is logged into a container to use the cli will see the output anyway
-RUN if ( $LOG_ERROR ); then  sed -i "/error_log =/c\error_log = \/proc\/self\/fd\/2" /etc/php/5.6/fpm/php-fpm.conf; fi
-RUN if ( $LOG_ACCESS ); then  sed -i "/;access.log =/c\access.log = \/proc\/self\/fd\/2" /etc/php/5.6/fpm/pool.d/www.conf; fi
+RUN if ( $LOG_ERROR ); then  sed -i "/error_log =/c\error_log = \/proc\/self\/fd\/2" /etc/php5/fpm/php-fpm.conf; fi
+RUN if ( $LOG_ACCESS ); then  sed -i "/;access.log =/c\access.log = \/proc\/self\/fd\/2" /etc/php5/fpm/pool.d/www.conf; fi
 
 # file size configs
-RUN sed -i "/memory_limit =/c\memory_limit = $MEMORY_LIMIT" /etc/php/5.6/fpm/php.ini
-RUN sed -i "/memory_limit =/c\memory_limit = $MEMORY_LIMIT" /etc/php/5.6/cli/php.ini
-RUN sed -i "/post_max_size =/c\post_max_size = $POST_MAXSIZE" /etc/php/5.6/fpm/php.ini
-RUN sed -i "/post_max_size =/c\post_max_size = $POST_MAXSIZE" /etc/php/5.6/cli/php.ini
-RUN sed -i "/upload_max_filesize =/c\upload_max_filesize = $UPLOAD_MAX_FILESIZE" /etc/php/5.6/fpm/php.ini
-RUN sed -i "/upload_max_filesize =/c\upload_max_filesize = $UPLOAD_MAX_FILESIZE" /etc/php/5.6/cli/php.ini
+RUN sed -i "/memory_limit =/c\memory_limit = $MEMORY_LIMIT" /etc/php5/fpm/php.ini
+RUN sed -i "/memory_limit =/c\memory_limit = $MEMORY_LIMIT" /etc/php5/cli/php.ini
+RUN sed -i "/post_max_size =/c\post_max_size = $POST_MAXSIZE" /etc/php5/fpm/php.ini
+RUN sed -i "/post_max_size =/c\post_max_size = $POST_MAXSIZE" /etc/php5/cli/php.ini
+RUN sed -i "/upload_max_filesize =/c\upload_max_filesize = $UPLOAD_MAX_FILESIZE" /etc/php5/fpm/php.ini
+RUN sed -i "/upload_max_filesize =/c\upload_max_filesize = $UPLOAD_MAX_FILESIZE" /etc/php5/cli/php.ini
 
 # date timezone
-RUN sed -i "/;date.timezone =/c\date.timezone = $DATE_TIMEZONE" /etc/php/5.6/fpm/php.ini
-RUN sed -i "/;date.timezone =/c\date.timezone = $DATE_TIMEZONE" /etc/php/5.6/cli/php.ini
+RUN sed -i "/;date.timezone =/c\date.timezone = $DATE_TIMEZONE" /etc/php5/fpm/php.ini
+RUN sed -i "/;date.timezone =/c\date.timezone = $DATE_TIMEZONE" /etc/php5/cli/php.ini
 
 RUN mkdir /run/php
 
@@ -76,6 +84,8 @@ RUN mkdir /run/php
 COPY ./install-composer-debian.sh /tmp/install-composer.sh
 RUN chmod +x /tmp/install-composer.sh && /tmp/install-composer.sh
 RUN mv /composer.phar /usr/local/bin/composer
+
+RUN apt-get install -y --no-install-recommends cron
 
 # cron for mail
 COPY ./mailer-cron /etc/cron.d/mailer-cron
