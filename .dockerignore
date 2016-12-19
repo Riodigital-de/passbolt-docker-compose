@@ -105,3 +105,5 @@ fabric.properties
 
 .idea/
 jenkins.iml
+
+.gitignore

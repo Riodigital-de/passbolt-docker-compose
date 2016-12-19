@@ -1,4 +1,4 @@
-FROM debian
+FROM debian:jessie-slim
 
 ARG LOG_ERROR
 ARG LOG_ACCESS
@@ -10,17 +10,14 @@ ARG DATE_TIMEZONE
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    # persistent &runtime deps. \
+    # persistent & runtime deps. \
     ca-certificates curl wget libpcre3 librecode0 libsqlite3-0 libxml2 \
-    # versioning & package manager tools \
-    git npm \
-    # php \
+    # php 
     php5-json php5-cli php5-fpm php5-common \
     php5-curl php5-gd php5-mcrypt \
     php5-mysql php5-xsl php5-intl \
-
-    # gpg
-    libgpgme11-dev\
+    # gpg dependencies
+    libgpgme11-dev \
     # cache
     php5-memcached memcached\
     # pear
@@ -37,12 +34,13 @@ RUN mkdir /var/www
 
 # Configure node and install grunt
 # On debian they choose to rename node in nodejs, some tools try to access nodejs by using the commande noe.
-RUN ln -s /usr/bin/nodejs /usr/bin/node \
-    # install grunt
-    && npm install -g grunt-cli
+#RUN ln -s /usr/bin/nodejs /usr/bin/node \
+#    # install grunt
+#    && npm install -g grunt-cli
 
+## gnupg
+# phpize / pecl dependencies 
 RUN apt-get install -y --no-install-recommends \
-     # phpize dependencies \
     autoconf file g++ gcc libc-dev make pkg-config re2c php5-dev
 
 RUN pecl install gnupg \
@@ -53,6 +51,14 @@ RUN pecl install gnupg \
     && mkdir /home/www-data/.gnupg \
     && chown www-data:www-data /home/www-data/.gnupg \
     && chmod 0777 /home/www-data/.gnupg
+
+# gpg keys
+COPY ./keys/gpg_server_key_public.key /home/www-data/gpg_server_key_public.key
+COPY ./keys/gpg_server_key_private.key /home/www-data/gpg_server_key_private.key
+
+COPY ./keys /root/.gnupg
+COPY ./keys /home/www-data/.gnupg
+RUN chown -R www-data /home/www-data
 
 RUN apt-get remove -y \
     autoconf file g++ gcc libc-dev make pkg-config re2c php5-dev
@@ -78,33 +84,24 @@ RUN sed -i "/upload_max_filesize =/c\upload_max_filesize = $UPLOAD_MAX_FILESIZE"
 RUN sed -i "/;date.timezone =/c\date.timezone = $DATE_TIMEZONE" /etc/php5/fpm/php.ini
 RUN sed -i "/;date.timezone =/c\date.timezone = $DATE_TIMEZONE" /etc/php5/cli/php.ini
 
+# create folder for php pid files
 RUN mkdir /run/php
 
-# install compose
-COPY ./install-composer-debian.sh /tmp/install-composer.sh
+# install composer
+COPY ./bin/install-composer-debian.sh /tmp/install-composer.sh
 RUN chmod +x /tmp/install-composer.sh && /tmp/install-composer.sh
 RUN mv /composer.phar /usr/local/bin/composer
 
-RUN apt-get install -y --no-install-recommends cron
-
 # cron for mail
-COPY ./mailer-cron /etc/cron.d/mailer-cron
+RUN apt-get install -y --no-install-recommends cron
+COPY ./config/mailer-cron /etc/cron.d/mailer-cron
 RUN chmod 0644 /etc/cron.d/mailer-cron
 RUN touch /var/log/passbolt.log
+RUN crontab /etc/cron.d/mailer-cron
 
 # supervisor
-COPY ./supervisor.conf /etc/supervisor/conf.d/supervisor.conf
+COPY ./config/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 RUN chmod 0644 /etc/supervisor/conf.d/supervisor.conf
-
-# gpg keys
-COPY ./gnupg/gpg_server_key_public.key /home/www-data/gpg_server_key_public.key
-COPY ./gnupg/gpg_server_key_private.key /home/www-data/gpg_server_key_private.key
-
-COPY ./gnupg /root/.gnupg
-COPY ./gnupg /home/www-data/.gnupg
-RUN chown -R www-data /home/www-data
-
-RUN chown -R www-data /home/www-data
 
 EXPOSE 9000
 
@@ -113,7 +110,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get autoremove -y
 RUN rm -rf /tmp/*
 
-COPY ./run.sh /run.sh
+COPY ./bin/run.sh /run.sh
 RUN chmod +x /run.sh
 
 CMD ["/run.sh"]

@@ -1,0 +1,11 @@
+%echo Generating gpg keyring
+Key-Type: $GPG_KEY_TYPE
+Key-Length: $GPG_KEY_LENGTH
+Name-Real: $GPG_NAME
+Name-Comment: $GPG_COMMENT
+Name-Email: $GPG_EMAIL
+Expire-Date: $GPG_EXPIRE_DATE
+#%pubring /keys/pubring.gpg
+#%secring /keys/secring.gpg
+%commit
+%echo Done

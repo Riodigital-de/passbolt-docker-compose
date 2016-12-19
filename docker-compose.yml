@@ -21,7 +21,7 @@ services:
     depends_on:
       - db
     environment:
-      - ADMIN_USERNAME=${admin_username}
+      - ADMIN_EMAIL=${admin_email}
       - ADMIN_FIRSTNAME=${admin_firstname}
       - ADMIN_LASTNAME=${admin_lastname}
       - MYSQL_HOST=db
@@ -29,6 +29,15 @@ services:
       - MYSQL_USERNAME=${mysql_user}
       - MYSQL_PASSWORD=${mysql_password}
       - HOST_NAME=192.168.178.65
+      - APP_EMAIL_TRANSPORT=${app_email_transport}
+      - APP_EMAIL_FROM_ADDRESS=${app_email_from_address}
+      - APP_EMAIL_FROM_NAME=${app_email_from_name}
+      - APP_EMAIL_HOST=${app_email_host}
+      - APP_EMAIL_PORT=${app_email_port}
+      - APP_EMAIL_TIMEOUT=${app_email_timeout}
+      - APP_EMAIL_USERNAME=${app_email_username}
+      - APP_EMAIL_PASSWORD=${app_email_password}
+      - APP_EMAIL_USE_TLS=${app_email_use_tls}
 
   db:
     image: mysql:5.7.16
@@ -39,7 +48,7 @@ services:
       - MYSQL_DATABASE=${mysql_database}
       - MYSQL_USER=${mysql_user}
       - MYSQL_PASSWORD=${mysql_password}
-    command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci]
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"]
 
   proxy:
     build: ./build/proxy

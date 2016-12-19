@@ -11,3 +11,8 @@ services:
     ports:
       - 80:80
 
+  mailcatcher:
+    image: docker pull schickling/mailcatcher
+    ports:
+      - 1080:1080
+
