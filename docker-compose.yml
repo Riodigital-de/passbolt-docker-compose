@@ -28,7 +28,7 @@ services:
       - MYSQL_DATABASE=${mysql_database}
       - MYSQL_USERNAME=${mysql_user}
       - MYSQL_PASSWORD=${mysql_password}
-      - HOST_NAME=192.168.178.65
+      - HOST_NAME=${proxy_domain}
       - APP_EMAIL_TRANSPORT=${app_email_transport}
       - APP_EMAIL_FROM_ADDRESS=${app_email_from_address}
       - APP_EMAIL_FROM_NAME=${app_email_from_name}
@@ -54,14 +54,20 @@ services:
     build: ./build/proxy
     ports:
       - 80:80
+      - 443:443
     depends_on:
       - app
     volumes_from:
       - app
     volumes:
       - ./config/app/app.conf:/etc/nginx/nginx.conf
+      - ./data/web/lets-etc/:/etc/letsencrypt/
+      - ./data/web/lets-var-lib/:/var/lib/letsencrypt/
+      - ./data/web/nginx-root/:/usr/share/nginx/html/
     environment:
-      - VIRTUAL_HOST=${virtual_hosts}
+      - VIRTUAL_HOST=${proxy_domain}
+      - ADMIN_EMAIL=${admin_email}
+      - DOMAIN=${proxy_domain}
     networks:
       - default
       - ambassador
