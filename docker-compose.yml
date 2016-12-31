@@ -60,7 +60,7 @@ services:
     volumes_from:
       - app
     volumes:
-      - ./config/app/app.conf:/etc/nginx/nginx.conf
+      - ./config/app/app.conf:/etc/nginx/nginx.conf.template
       - ./data/web/lets-etc/:/etc/letsencrypt/
       - ./data/web/lets-var-lib/:/var/lib/letsencrypt/
       - ./data/web/nginx-root/:/usr/share/nginx/html/

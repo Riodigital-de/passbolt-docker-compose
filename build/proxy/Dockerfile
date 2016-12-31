@@ -1,4 +1,4 @@
-FROM nginx:latest
+FROM nginx:stable
 
 RUN set -x \
     && echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list \
@@ -25,9 +25,10 @@ RUN touch /var/log/cert-renew.log
 VOLUME ["/var/log/"]
 
 COPY ./supervisor.conf /etc/supervisor/conf.d/supervisord.conf
-COPY ./nginx.conf /etc/nginx/nginx.conf
-#COPY ./desk.template.conf /etc/nginx/conf.d/default.conf
+
+COPY ./run.sh /run.sh
+RUN chmod +x /run.sh
 
 EXPOSE 80 443
 
-CMD ["/usr/bin/supervisord"]
+CMD ["/run.sh"]
