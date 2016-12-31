@@ -89,7 +89,8 @@ RUN mkdir /run/php
 
 # install composer
 COPY ./bin/install-composer-debian.sh /tmp/install-composer.sh
-RUN chmod +x /tmp/install-composer.sh && /tmp/install-composer.sh
+RUN chmod +x /tmp/install-composer.sh 
+RUN /tmp/install-composer.sh
 RUN mv /composer.phar /usr/local/bin/composer
 
 # cron for mail
