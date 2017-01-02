@@ -1,6 +1,25 @@
 # passbolt docker-compose stack #
 
 [Passbolt](https://www.passbolt.com "Passbolt Homepage") is a web based password manager for teams build around [gpg](https://www.gnupg.org/ "GnuPG Homepage"). This repository aims to provide a basis to use passbolt in production via docker and docker-compose.
+It features:
+* builtin letsencrypt support: Helper script to test setup and obtain certificates via [certbot](https://github.com/certbot/certbot "Certbot, previously the Let's Encrypt Client, is EFF's tool to obtain certs from Let's Encrypt,...")
+* automatic letsencrypt certificate renewal
+* SSL offloading via a nginx reverse proxy
+* OWASP recommended nginx settings
+* almost completely automated setup of passbolt, only one config file needs to be touched
+* helper script to generate gpg key pairs to be used with passbolt within seconds
+
+## Before you get started ##
+### A few notes on passbolt and security in general ###
+Getting security done right is hard. Like, really, really hard. 
+
+Although passbolt already gets a lot of things done right, and although we tried our best to do everything right with this docker-compose stack, two things must be noted:
+
+1. **Passbolt is still in alpha**. We strongly urge you to think long and hard about whether you should use software that is arguably still in its infancy for something as critical as credential management.
+
+2. The setup described in this repository is certainly not perfect. Think you found a vulnerability? Open an issue and help us improve it.
+
+So full disclaimer: Use this repository at your own risk.
 
 ## Requirements ##
 
@@ -18,8 +37,8 @@
 
 2. Make sure you have docker and docker-compose up and running
 
-3. Open the .env file in the projects root directory with your favored editorand change the values to your needs
-    Have a look at [the section on the contens of .env](#contents-of-.env) to see what every entry does
+3. Open the .env file in the projects root directory with your favored editor and change the values to your needs
+    Have a look at [the section on the contens of .env](#contents-of-env) to see what every entry does
 
 4. Unless you already have a set of gpg keys you want to use, generate a key pair. From the root directory of the project run
     ```bash
@@ -37,7 +56,7 @@
     ```bash
     docker-compose build
     ```
-6. Make sure the DNS records for the domain you want your passbolt instace to be reachable by are setup properly and point to the public IP of the machine hosting the docker-compose stack
+6. Make sure the DNS records for the domain you want your passbolt instance to be reachable by are setup properly and point to the public IP of the machine hosting the docker-compose stack
 
 7. Start the (nginx-reverse-)proxy container in interactive mode while overriding the default command to bash and mapping port 80 and 443 explicitly:
     ```bash
@@ -104,8 +123,8 @@
 * **post_maxsize**: The maximum allowed sizes of each POST request. Default is 10M
 * **upload_max_filesize**: The maximum allwoed size for files attached to PUT or POST requests. Default is 10M
 * **date_timezone**: The date / timezone used by the php interpreter. Default is Europe/Berlin
-* **log_error**: Wether or not to log php errors to the default docker log / console output. Default is true
-* **log_access**: Wether or not to log all php access requests to the default docker log / console output. Default is false
+* **log_error**: whether or not to log php errors to the default docker log / console output. Default is true
+* **log_access**: whether or not to log all php access requests to the default docker log / console output. Default is false
 
 ### db ###
 * **mysql_root_password**: The mysql root users password
