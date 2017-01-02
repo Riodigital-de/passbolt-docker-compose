@@ -22,7 +22,7 @@ if [ ! -e /var/www/passbolt/index.php ]; then
 
     # cake alwys writes strings...
     #/var/www/passbolt/app/Console/cake passbolt app_config write App.ssl.force false
-    sed -i  "/'force' => true,/c\'force' => false," /var/www/passbolt/app/Config/app.php
+    #sed -i  "/'force' => true,/c\'force' => false," /var/www/passbolt/app/Config/app.php
 
     chown www-data:www-data /home/www-data/gpg_server_key_public.key
     chown www-data:www-data /home/www-data/gpg_server_key_private.key
@@ -31,7 +31,7 @@ if [ ! -e /var/www/passbolt/index.php ]; then
     # overwrite the core configuration
     /var/www/passbolt/app/Console/cake passbolt core_config gen-cipher-seed
     /var/www/passbolt/app/Console/cake passbolt core_config gen-security-salt
-    /var/www/passbolt/app/Console/cake passbolt core_config write App.fullBaseUrl http://${HOST_NAME}
+    /var/www/passbolt/app/Console/cake passbolt core_config write App.fullBaseUrl https://${HOST_NAME}
     chown -R www-data /var/www
     # overwrite the database configuration
     # @TODO based on the cake task DbConfigTask implement a task to manipulate the dabase configuration
