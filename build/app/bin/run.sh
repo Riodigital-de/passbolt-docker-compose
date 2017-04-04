@@ -4,7 +4,7 @@ if [ ! -e /var/www/passbolt/index.php ]; then
     echo "Couldn't find any files for passbolt, downloading new files"
     mkdir -p /var/www/passbolt
     cd /var/www/passbolt
-    curl -L https://github.com/passbolt/passbolt_api/archive/v1.3.0.tar.gz -o /home/www-data/passbolt.tar.gz
+    curl -L https://github.com/passbolt/passbolt_api/archive/v1.4.0.tar.gz -o /home/www-data/passbolt.tar.gz
     echo "extracting..."
     tar -xzf /home/www-data/passbolt.tar.gz -C /var/www/passbolt --strip-components=1
     chown -R www-data /var/www
